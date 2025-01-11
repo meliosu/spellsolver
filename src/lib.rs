@@ -68,45 +68,6 @@ impl Letter {
 }
 
 pub fn search(grid: &Grid, swap: usize, top: usize) -> Vec<(Word, u32)> {
-    find_words(grid, swap, top)
-}
-
-pub fn word_to_string(word: &Word, grid: &Grid) -> String {
-    word.iter()
-        .map(|&((x, y), c)| {
-            c.map(|c| c.to_ascii_uppercase())
-                .unwrap_or(grid[y][x].character)
-        })
-        .collect()
-}
-
-fn find_score(word: &Word, grid: &Grid) -> u32 {
-    let mut score = 0;
-    let mut multiplier = 1;
-
-    for &((x, y), c) in word {
-        let letter = &grid[y][x];
-        let character = c.unwrap_or(letter.character);
-        let character_score = SCORES[character as usize - 'a' as usize];
-
-        score += match letter.modifier {
-            Some(ref modifier) => match modifier {
-                Modifier::DoubleLetter => character_score * 2,
-                Modifier::TripleLetter => character_score * 3,
-                Modifier::DoubleWord => {
-                    multiplier = 2;
-                    character_score
-                }
-            },
-
-            None => character_score,
-        }
-    }
-
-    score * multiplier + if word.len() >= 6 { 10 } else { 0 }
-}
-
-fn find_words(grid: &Grid, swap: usize, top: usize) -> Vec<(Word, u32)> {
     fn find_words(
         words: &mut Top<(Word, u32)>,
         node: &TrieNode,
@@ -186,4 +147,39 @@ fn find_words(grid: &Grid, swap: usize, top: usize) -> Vec<(Word, u32)> {
     let mut word = Word::new();
     find_words(&mut words, &ROOT, &mut word, swap, grid);
     words.into_inner()
+}
+
+pub fn word_to_string(word: &Word, grid: &Grid) -> String {
+    word.iter()
+        .map(|&((x, y), c)| {
+            c.map(|c| c.to_ascii_uppercase())
+                .unwrap_or(grid[y][x].character)
+        })
+        .collect()
+}
+
+fn find_score(word: &Word, grid: &Grid) -> u32 {
+    let mut score = 0;
+    let mut multiplier = 1;
+
+    for &((x, y), c) in word {
+        let letter = &grid[y][x];
+        let character = c.unwrap_or(letter.character);
+        let character_score = SCORES[character as usize - 'a' as usize];
+
+        score += match letter.modifier {
+            Some(ref modifier) => match modifier {
+                Modifier::DoubleLetter => character_score * 2,
+                Modifier::TripleLetter => character_score * 3,
+                Modifier::DoubleWord => {
+                    multiplier = 2;
+                    character_score
+                }
+            },
+
+            None => character_score,
+        }
+    }
+
+    score * multiplier + if word.len() >= 6 { 10 } else { 0 }
 }
