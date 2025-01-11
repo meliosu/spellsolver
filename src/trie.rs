@@ -17,7 +17,7 @@ impl std::fmt::Debug for TrieNode {
 
                 f.write_char(c)?;
 
-                if child.leaf() {
+                if child.is_complete() {
                     f.write_char('*')?;
                 }
 
@@ -40,8 +40,12 @@ impl TrieNode {
         }
     }
 
-    pub fn leaf(&self) -> bool {
+    pub fn is_complete(&self) -> bool {
         self.terminal
+    }
+
+    pub fn is_leaf(&self) -> bool {
+        self.children.iter().all(|o| o.is_none())
     }
 
     pub fn child(&self, c: char) -> Option<&Self> {
