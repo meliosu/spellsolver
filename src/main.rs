@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use std::time::Instant;
+
 use spellcast::Modifier::*;
 use spellcast::{search, word_to_string, Letter};
 
@@ -41,10 +44,19 @@ fn main() {
     ];
 
     let grid = grid.map(|a| a.map(|(c, m)| Letter::new(c, m)));
-    let mut words = search(&grid, 3);
-    words.dedup_by_key(|(word, score)| (word_to_string(word, &grid), *score));
 
-    for (word, score) in words.into_iter().take(10) {
-        println!("{} {}", word_to_string(&word, &grid), score);
+    _ = std::hint::black_box(search(&grid, 0));
+
+    for swaps in 0..=3 {
+        let start = Instant::now();
+
+        let mut words = search(&grid, swaps);
+        words.dedup_by_key(|(word, score)| (word_to_string(word, &grid), *score));
+
+        for (word, score) in words.into_iter().take(10) {
+            println!("{} {}", word_to_string(&word, &grid), score);
+        }
+
+        println!("{swaps} swaps: {:?}\n\n", start.elapsed());
     }
 }

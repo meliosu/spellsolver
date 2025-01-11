@@ -110,15 +110,21 @@ fn find_score(word: &Word, grid: &Grid) -> u32 {
 }
 
 fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
-    fn find_words(words: &mut Vec<Word>, node: &TrieNode, curr: Word, swap: usize, grid: &Grid) {
+    fn find_words(
+        words: &mut Vec<Word>,
+        node: &TrieNode,
+        word: &mut Word,
+        swap: usize,
+        grid: &Grid,
+    ) {
         if node.leaf() {
-            words.push(curr.clone());
+            words.push(word.clone());
         }
 
         let width = grid[0].len();
         let height = grid.len();
 
-        let mut next: Vec<(usize, usize)> = match curr.last().copied() {
+        let mut next: Vec<(usize, usize)> = match word.last().copied() {
             Some(((x, y), _)) => {
                 let deltas = [
                     (-1, -1),
@@ -148,14 +154,14 @@ fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
                 .collect(),
         };
 
-        next.retain(|pos| !curr.iter().any(|(p, _)| p == pos));
+        next.retain(|pos| !word.iter().any(|(p, _)| p == pos));
 
         if swap > 0 {
             for (c, child) in node.children() {
                 for &pos in &next {
-                    let mut next = curr.clone();
-                    next.push((pos, Some(c)));
-                    find_words(words, child, next, swap - 1, grid);
+                    word.push((pos, Some(c)));
+                    find_words(words, child, word, swap - 1, grid);
+                    word.pop();
                 }
             }
         }
@@ -164,14 +170,15 @@ fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
             let c = grid[y][x].character;
 
             if let Some(child) = node.child(c) {
-                let mut next = curr.clone();
-                next.push((pos, None));
-                find_words(words, child, next, swap, grid);
+                word.push((pos, None));
+                find_words(words, child, word, swap, grid);
+                word.pop();
             }
         }
     }
 
     let mut words = Vec::new();
-    find_words(&mut words, &ROOT, Vec::new(), swap, grid);
+    let mut word = Vec::new();
+    find_words(&mut words, &ROOT, &mut word, swap, grid);
     words
 }
