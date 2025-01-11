@@ -115,10 +115,12 @@ fn find_words(grid: &Grid, swap: usize, top: usize) -> Vec<(Word, u32)> {
         grid: &Grid,
     ) {
         if node.leaf() {
-            let word = word.clone();
-            let score = find_score(&word, grid);
+            let score = find_score(word, grid);
 
-            words.insert_by_key((word, score), |(_, score)| std::cmp::Reverse(*score));
+            if !words.worst().is_some_and(|(_, worst)| score <= *worst) {
+                let word = word.clone();
+                words.insert_by_key((word, score), |(_, score)| std::cmp::Reverse(*score));
+            }
         }
 
         let not_in_word = |pos: &(usize, usize)| !word.iter().any(|(p, _)| p == pos);

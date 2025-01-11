@@ -36,6 +36,10 @@ impl<T> Top<T> {
         self.add(index, element);
     }
 
+    pub fn worst(&self) -> Option<&T> {
+        self.vec.last()
+    }
+
     fn add(&mut self, index: usize, element: T) {
         self.vec.insert(index, element);
 
