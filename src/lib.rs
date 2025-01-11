@@ -124,7 +124,9 @@ fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
         let width = grid[0].len();
         let height = grid.len();
 
-        let mut next: Vec<(usize, usize)> = match word.last().copied() {
+        let not_in_word = |pos: &(usize, usize)| !word.iter().any(|(p, _)| p == pos);
+
+        let next: Vec<(usize, usize)> = match word.last().copied() {
             Some(((x, y), _)) => {
                 let deltas = [
                     (-1, -1),
@@ -146,19 +148,23 @@ fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
                         (nx >= 0 && nx < width as isize && ny >= 0 && ny < height as isize)
                             .then(|| (nx as usize, ny as usize))
                     })
+                    .filter(not_in_word)
                     .collect()
             }
 
             None => (0..width)
                 .flat_map(|i| (0..height).map(move |j| (i, j)))
+                .filter(not_in_word)
                 .collect(),
         };
 
-        next.retain(|pos| !word.iter().any(|(p, _)| p == pos));
-
         if swap > 0 {
             for (c, child) in node.children() {
-                for &pos in &next {
+                for &pos @ (x, y) in &next {
+                    if grid[y][x].character == c {
+                        continue;
+                    }
+
                     word.push((pos, Some(c)));
                     find_words(words, child, word, swap - 1, grid);
                     word.pop();
