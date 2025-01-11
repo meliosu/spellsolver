@@ -2,11 +2,15 @@
 
 use std::sync::LazyLock;
 
+use arrayvec::ArrayVec;
 use trie::TrieNode;
 
 pub mod trie;
 
-pub type Grid = [[Letter; 5]; 5];
+const WIDTH: usize = 5;
+const HEIGHT: usize = 5;
+
+pub type Grid = [[Letter; WIDTH]; HEIGHT];
 pub type Word = Vec<((usize, usize), Option<char>)>;
 
 static ROOT: LazyLock<TrieNode> =
@@ -121,39 +125,32 @@ fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
             words.push(word.clone());
         }
 
-        let width = grid[0].len();
-        let height = grid.len();
-
         let not_in_word = |pos: &(usize, usize)| !word.iter().any(|(p, _)| p == pos);
 
-        let next: Vec<(usize, usize)> = match word.last().copied() {
-            Some(((x, y), _)) => {
-                let deltas = [
-                    (-1, -1),
-                    (-1, 0),
-                    (-1, 1),
-                    (0, -1),
-                    (0, 1),
-                    (1, -1),
-                    (1, 0),
-                    (1, 1),
-                ];
+        let next: ArrayVec<(usize, usize), 25> = match word.last().copied() {
+            Some(((x, y), _)) => [
+                (-1, -1),
+                (-1, 0),
+                (-1, 1),
+                (0, -1),
+                (0, 1),
+                (1, -1),
+                (1, 0),
+                (1, 1),
+            ]
+            .into_iter()
+            .filter_map(|(dx, dy)| {
+                let nx = x as isize + dx;
+                let ny = y as isize + dy;
 
-                deltas
-                    .into_iter()
-                    .filter_map(|(dx, dy)| {
-                        let nx = x as isize + dx;
-                        let ny = y as isize + dy;
+                (nx >= 0 && nx < WIDTH as isize && ny >= 0 && ny < HEIGHT as isize)
+                    .then(|| (nx as usize, ny as usize))
+            })
+            .filter(not_in_word)
+            .collect(),
 
-                        (nx >= 0 && nx < width as isize && ny >= 0 && ny < height as isize)
-                            .then(|| (nx as usize, ny as usize))
-                    })
-                    .filter(not_in_word)
-                    .collect()
-            }
-
-            None => (0..width)
-                .flat_map(|i| (0..height).map(move |j| (i, j)))
+            None => (0..WIDTH)
+                .flat_map(|i| (0..HEIGHT).map(move |j| (i, j)))
                 .filter(not_in_word)
                 .collect(),
         };
@@ -184,7 +181,7 @@ fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
     }
 
     let mut words = Vec::new();
-    let mut word = Vec::new();
+    let mut word = Word::new();
     find_words(&mut words, &ROOT, &mut word, swap, grid);
     words
 }
