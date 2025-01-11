@@ -3,8 +3,10 @@
 use std::sync::LazyLock;
 
 use arrayvec::ArrayVec;
+use top::Top;
 use trie::TrieNode;
 
+pub mod top;
 pub mod trie;
 
 const WIDTH: usize = 5;
@@ -65,17 +67,8 @@ impl Letter {
     }
 }
 
-pub fn search(grid: &Grid, swap: usize) -> Vec<(Word, u32)> {
-    let mut results: Vec<(Word, u32)> = find_words(grid, swap)
-        .into_iter()
-        .map(|word| {
-            let score = find_score(&word, grid);
-            (word, score)
-        })
-        .collect();
-
-    results.sort_unstable_by_key(|(_, score)| std::cmp::Reverse(*score));
-    results
+pub fn search(grid: &Grid, swap: usize, top: usize) -> Vec<(Word, u32)> {
+    find_words(grid, swap, top)
 }
 
 pub fn word_to_string(word: &Word, grid: &Grid) -> String {
@@ -113,16 +106,19 @@ fn find_score(word: &Word, grid: &Grid) -> u32 {
     score * multiplier + if word.len() >= 6 { 10 } else { 0 }
 }
 
-fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
+fn find_words(grid: &Grid, swap: usize, top: usize) -> Vec<(Word, u32)> {
     fn find_words(
-        words: &mut Vec<Word>,
+        words: &mut Top<(Word, u32)>,
         node: &TrieNode,
         word: &mut Word,
         swap: usize,
         grid: &Grid,
     ) {
         if node.leaf() {
-            words.push(word.clone());
+            let word = word.clone();
+            let score = find_score(&word, grid);
+
+            words.insert_by_key((word, score), |(_, score)| std::cmp::Reverse(*score));
         }
 
         let not_in_word = |pos: &(usize, usize)| !word.iter().any(|(p, _)| p == pos);
@@ -180,8 +176,8 @@ fn find_words(grid: &Grid, swap: usize) -> Vec<Word> {
         }
     }
 
-    let mut words = Vec::new();
+    let mut words = Top::new(top);
     let mut word = Word::new();
     find_words(&mut words, &ROOT, &mut word, swap, grid);
-    words
+    words.into_inner()
 }

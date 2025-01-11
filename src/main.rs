@@ -43,16 +43,15 @@ fn main() {
     ];
 
     let grid = grid.map(|a| a.map(|(c, m)| Letter::new(c, m)));
+    let top = 50;
 
-    _ = std::hint::black_box(search(&grid, 0));
+    _ = std::hint::black_box(search(&grid, 0, top));
 
     for swaps in 0..=3 {
         let start = Instant::now();
+        let words = search(&grid, swaps, top);
 
-        let mut words = search(&grid, swaps);
-        words.dedup_by_key(|(word, score)| (word_to_string(word, &grid), *score));
-
-        for (word, score) in words.into_iter().take(10) {
+        for (word, score) in words {
             println!("{} {}", word_to_string(&word, &grid), score);
         }
 
