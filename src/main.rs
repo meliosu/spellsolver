@@ -25,12 +25,22 @@ async fn index() -> impl IntoResponse {
     Index
 }
 
-fn parse_grid(query: HashMap<String, String>) -> Result<Grid, StatusCode> {
+fn parse_grid(query: HashMap<String, String>) -> Result<(Grid, usize), StatusCode> {
     let mut grid: Grid = array::from_fn(|_| array::from_fn(|_| Letter::new(' ', None)));
 
     let parse = |key: &str| key.parse::<usize>().ok();
+    let mut swaps = 0;
 
     for (key, value) in query {
+        if key == "swaps" {
+            let Some(number) = parse(&value) else {
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            };
+
+            swaps = number;
+            continue;
+        }
+
         if let Some(cell) = key.strip_suffix("DL").and_then(parse) {
             let (x, y) = (cell % 5, cell / 5);
 
@@ -60,12 +70,12 @@ fn parse_grid(query: HashMap<String, String>) -> Result<Grid, StatusCode> {
         }
     }
 
-    Ok(grid)
+    Ok((grid, swaps))
 }
 
 async fn find(Query(query): Query<HashMap<String, String>>) -> Result<Answer, StatusCode> {
-    let grid = parse_grid(query)?;
-    let (word, score) = spellcast::search(&grid, 0, 1)[0].clone();
+    let (grid, swaps) = parse_grid(query)?;
+    let (word, score) = spellcast::search(&grid, swaps, 1)[0].clone();
 
     log::info!("best word: {}", word_to_string(&word, &grid));
 
