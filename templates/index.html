@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
+    <script src="https://unpkg.com/htmx.org"></script>
+    <title>Spellcast Solver</title>
+
+    <style>
+        .container-center {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .container-grid {
+            display: grid;
+            gap: 5em;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+        }
+
+        .cell {
+            width: 5em;
+            height: 5em;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .input-letter {
+            caret-color: transparent;
+            text-align: center;
+            font-size: 4rem;
+            aspect-ratio: 1;
+            text-transform: uppercase;
+        }
+
+        .input-letter::selection {
+            background-color: transparent;
+        }
+
+        #submit {
+            margin: 1.5em;
+        }
+
+        .picked {
+            color: green;
+        }
+
+        .replaced {
+            color: magenta;
+        }
+
+        .not-picked {
+            color: black;
+        }
+
+        .picked,
+        .replaced,
+        .not-picked {
+            font-size: 4rem;
+        }
+    </style>
+</head>
+
+<body>
+    <form class="container-center" hx-get="/find" hx-swap="outerHTML">
+        <div id="container-grid" class="container-grid">
+            {% for i in 0..25 %}
+            <div class="cell">
+                <input class="input-letter" name={{ format!("{i}") }} type="text" maxlength="1">
+                <label class="label">
+                    <input class="cb-dl" name={{ format!("{i}DL") }} type="checkbox">
+                    DL
+                </label>
+                <label class="label">
+                    <input class="cb-dw" name={{ format!("{i}DW") }} type="checkbox">
+                    2x
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button class="button is-submit" id="submit" type="submit">
+            Find Best Word
+        </button>
+    </form>
+</body>
+
+</html>

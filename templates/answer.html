@@ -1,0 +1,30 @@
+<div class="container-center">
+    <div id="container-grid" class="container-grid">
+        {% for i in 0..25 %}
+        <div class="cell">
+            <div>
+                {% let (c, picked, replaced, index) = Self::char_picked_replaced_index(self, i) %}
+
+                {% if !picked %}
+                <div class="not-picked">{{ c }}</div>
+                {% else if replaced %}
+                <div class="letter">
+                    {{ index + 1 }}
+                    <div class="replaced">{{ c }}</div>
+                </div>
+                {% else %}
+                <div class="letter">
+                    {{ index + 1}}
+                    <div class="picked">{{ c }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div id="score">
+        <b>
+            Score: {{ score }}
+        </b>
+    </div>
+</div>

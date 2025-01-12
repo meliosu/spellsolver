@@ -54,8 +54,8 @@ pub enum Modifier {
 }
 
 pub struct Letter {
-    character: char,
-    modifier: Option<Modifier>,
+    pub character: char,
+    pub modifier: Option<Modifier>,
 }
 
 impl Letter {
