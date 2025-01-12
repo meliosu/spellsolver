@@ -7,18 +7,20 @@ use axum::{extract::Query, http::StatusCode};
 
 use spellcast::{word_to_string, Grid, Letter, Modifier, Word};
 
-#[tokio::main]
-async fn main() {
+#[shuttle_runtime::main]
+async fn main() -> shuttle_axum::ShuttleAxum {
     env_logger::init();
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:1337").await.unwrap();
     let router = axum::Router::new()
         .route("/", routing::get(index))
         .route("/find", routing::get(find));
 
-    axum::serve(listener, router.into_make_service())
-        .await
-        .unwrap();
+    //let listener = tokio::net::TcpListener::bind("0.0.0.0:1337").await.unwrap();
+    //axum::serve(listener, router.into_make_service())
+    //    .await
+    //    .unwrap();
+
+    Ok(router.into())
 }
 
 async fn index() -> impl IntoResponse {
